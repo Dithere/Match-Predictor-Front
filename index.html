@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cricket Match Winner Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Orbitron', sans-serif;
+            height: 100vh;
+            background-color: #000;
+            color: #0ff;
+            overflow: hidden;
+        }
+        #bg-video {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: -1;
+            filter: brightness(0.2) contrast(1.2);
+        }
+        .hero-bg {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        .container {
+            background: rgba(0, 255, 255, 0.05);
+            border: 2px solid #0ff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px #0ff;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #0ff;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #0ff;
+            background-color: #000;
+            color: #0ff;
+            border-radius: 8px;
+            font-size: 1em;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg fill='%230ff' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 1.2em;
+        }
+        option {
+            background-color: #000;
+            color: #0ff;
+        }
+        button.btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            border: 2px solid #0ff;
+            border-radius: 8px;
+            background-color: transparent;
+            color: #0ff;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button.btn:hover {
+            background-color: #0ff;
+            color: #000;
+        }
+        .team-select {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .flag {
+            width: 40px;
+            height: auto;
+            display: none;
+            border-radius: 4px;
+            box-shadow: 0 0 5px #0ff;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            text-align: center;
+            text-shadow: none;
+        }
+        .analyzing {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5em;
+            color: #0ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 20px;
+            animation: flicker 1s infinite alternate;
+        }
+        .dot {
+            animation: blink 1s infinite;
+        }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        @keyframes flicker {
+            0% { text-shadow: 0 0 5px #0ff, 0 0 10px #0ff; }
+            100% { text-shadow: 0 0 10px #0ff, 0 0 20px #0ff; }
+        }
+        .prediction {
+            font-size: 1.8em;
+            color: #0ff;
+            text-align: center;
+            margin-top: 20px;
+            text-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <video autoplay muted loop id="bg-video">
+        <source src="https://cdn.coverr.co/videos/coverr-futuristic-vr-interface-5717/1080p.mp4" type="video/mp4">
+    </video>
+    <div class="hero-bg">
+        <div class="container">
+            <h1>Cricket Match Predictor</h1>
+            <form id="predictForm">
+                <div class="form-group">
+                    <label for="team1">Team 1</label>
+                    <div class="team-select">
+                        <select name="team1" id="team1" required></select>
+                        <img id="flag1" class="flag" src="" alt="">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="team2">Team 2</label>
+                    <div class="team-select">
+                        <select name="team2" id="team2" required></select>
+                        <img id="flag2" class="flag" src="" alt="">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="venue">Venue</label>
+                    <select name="venue" required>
+                        <option value="">Select Venue</option>
+                        <option value="Western Australia Cricket Association Ground">Western Australia Cricket Association Ground</option>
+                        <option value="Bellerive Oval">Bellerive Oval</option>
+                        <option value="Brisbane Cricket Ground, Woolloongabba">Brisbane Cricket Ground, Woolloongabba</option>
+                        <option value="Simonds Stadium, South Geelong">Simonds Stadium, South Geelong</option>
+                        <option value="Manuka Oval">Manuka Oval</option>
+                        <option value="Hagley Oval">Hagley Oval</option>
+                        <option value="Saxton Oval">Saxton Oval</option>
+                        <option value="McLean Park">McLean Park</option>
+                        <option value="Bay Oval">Bay Oval</option>
+                        <option value="Basin Reserve">Basin Reserve</option>
+                        <option value="Seddon Park">Seddon Park</option>
+                        <option value="Eden Park">Eden Park</option>
+                        <option value="Westpac Stadium">Westpac Stadium</option>
+                        <option value="Kennington Oval">Kennington Oval</option>
+                        <option value="Edgbaston">Edgbaston</option>
+                        <option value="Sophia Gardens">Sophia Gardens</option>
+                        <option value="Shere Bangla National Stadium">Shere Bangla National Stadium</option>
+                        <option value="Lord's">Lord's</option>
+                        <option value="Trent Bridge">Trent Bridge</option>
+                        <option value="Headingley">Headingley</option>
+                        <option value="Old Trafford">Old Trafford</option>
+                        <option value="The Rose Bowl">The Rose Bowl</option>
+                        <option value="Kingsmead">Kingsmead</option>
+                        <option value="SuperSport Park">SuperSport Park</option>
+                        <option value="Newlands">Newlands</option>
+                        <option value="Wanderers Stadium">Wanderers Stadium</option>
+                        <option value="St George's Park">St George's Park</option>
+                        <option value="Buffalo Park">Buffalo Park</option>
+                        <option value="M.Chinnaswamy Stadium">M.Chinnaswamy Stadium</option>
+                        <option value="Eden Gardens">Eden Gardens</option>
+                        <option value="MA Chidambaram Stadium, Chepauk">MA Chidambaram Stadium, Chepauk</option>
+                        <option value="Punjab Cricket Association Stadium, Mohali">Punjab Cricket Association Stadium, Mohali</option>
+                        <option value="Vidarbha Cricket Association Stadium, Jamtha">Vidarbha Cricket Association Stadium, Jamtha</option>
+                        <option value="Sawai Mansingh Stadium">Sawai Mansingh Stadium</option>
+                        <option value="Sardar Patel Stadium, Motera">Sardar Patel Stadium, Motera</option>
+                        <option value="Green Park">Green Park</option>
+                        <option value="Barabati Stadium">Barabati Stadium</option>
+                        <option value="Rajiv Gandhi International Stadium, Uppal">Rajiv Gandhi International Stadium, Uppal</option>
+                        <option value="Himachal Pradesh Cricket Association Stadium">Himachal Pradesh Cricket Association Stadium</option>
+                        <option value="Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium">Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium</option>
+                        <option value="JSCA International Stadium Complex">JSCA International Stadium Complex</option>
+                        <!-- Add more from the venue list if needed -->
+
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="toss_winner">Toss Winner</label>
+                    <input type="text" name="toss_winner" required>
+                </div>
+                <div class="form-group">
+                    <label for="toss_decision">Toss Decision</label>
+                    <select name="toss_decision" required>
+                        <option value="">Select</option>
+                        <option value="bat">Bat</option>
+                        <option value="field">Field</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Predict</button>
+                <div id="result"></div>
+            </form>
+        </div>
+    </div>
+    <script>
+        const teams = {
+            "India": "https://flagcdn.com/in.svg",
+            "Australia": "https://flagcdn.com/au.svg",
+            "England": "https://flagcdn.com/gb-eng.svg",
+            "Pakistan": "https://flagcdn.com/pk.svg",
+            "New Zealand": "https://flagcdn.com/nz.svg",
+            "South Africa": "https://flagcdn.com/za.svg"
+        };
+
+        $(document).ready(function() {
+            for (const team in teams) {
+                $('#team1').append(`<option value="${team}">${team}</option>`);
+                $('#team2').append(`<option value="${team}">${team}</option>`);
+            }
+
+            $('#team1').on('change', function() {
+                const team = $(this).val();
+                $('#flag1').attr('src', teams[team]).show();
+            });
+
+            $('#team2').on('change', function() {
+                const team = $(this).val();
+                $('#flag2').attr('src', teams[team]).show();
+            });
+        });
+
+        document.getElementById("predictForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = `
+                <div class="analyzing">
+                    <span>Analyzing Match Data</span><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+                </div>
+            `;
+
+            const formData = new FormData(this);
+            const jsonData = Object.fromEntries(formData.entries());
+
+            setTimeout(async () => {
+                try {
+                    const response = await fetch("https://60ea93e4-ca77-4417-98a9-3c9b99196eb5-00-1fnvvgrgprcux.sisko.replit.dev/predict", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(jsonData)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        resultDiv.innerHTML = `<div class="prediction"> Predicted Winner: <strong>${result.predicted_winner}</strong></div>`;
+                    } else {
+                        resultDiv.innerText = "Error: " + result.error;
+                    }
+                } catch (err) {
+                    resultDiv.innerText = "Error connecting to API.";
+                    console.error(err);
+                }
+            }, 2500);
+        });
+    </script>
+</body>
+</html>
